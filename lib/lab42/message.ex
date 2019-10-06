@@ -68,7 +68,9 @@ defmodule Lab42.Message do
       true
 
   """
-  @spec result( ts(), any() ) :: result_t()
+  # @spec result( ts(), any() ) :: result_t()
+  # Fail Travis on purpose
+  @spec result( ts(), any() ) :: number()
   def result(messages, value) do
     status = _status(messages)
     {status, value, messages}
