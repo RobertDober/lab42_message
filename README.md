@@ -15,10 +15,96 @@ and any changes you make in this file will most likely be lost
 
 ## Synopsis
 
-Primitive Library to manage Errors and Results.
+Simple Library to manage Errors and Results.
 
 Its Simplicity is inspired by
  Dave Thomas' keynote, condensed here https://pragdave.me/blog/2018/06/02/project-structure.html
+
+## API
+
+A container for error messages.
+
+Defining some severities.
+
+Create results depending on error messages.
+
+Convenience functions for adding, filtering and sorting messages.
+
+
+### Lab42.Message.add_critical/3
+
+Create a message with severity :critical and add in front of other messages
+
+    iex(10)> add_critical([], "Just a critical message", {1, 3})
+    [%Lab42.Message{message: "Just a critical message", severity: :critical, location: {1, 3}}]
+### Lab42.Message.add_debug/3
+
+Create a message with severity :debug and add in front of other messages
+
+    iex(2)> add_debug([], "Just a debug message", {1, 3})
+    [%Lab42.Message{message: "Just a debug message", severity: :debug, location: {1, 3}}]
+### Lab42.Message.add_error/3
+
+Create a message with severity :error and add in front of other messages
+
+    iex(8)> add_error([], "Just a error message", {1, 3})
+    [%Lab42.Message{message: "Just a error message", severity: :error, location: {1, 3}}]
+### Lab42.Message.add_fatal/3
+
+Create a message with severity :fatal and add in front of other messages
+
+    iex(12)> add_fatal([], "Just a fatal message", {1, 3})
+    [%Lab42.Message{message: "Just a fatal message", severity: :fatal, location: {1, 3}}]
+### Lab42.Message.add_info/3
+
+Create a message with severity :info and add in front of other messages
+
+    iex(4)> add_info([], "Just a info message", {1, 3})
+    [%Lab42.Message{message: "Just a info message", severity: :info, location: {1, 3}}]
+### Lab42.Message.add_warning/3
+
+Create a message with severity :warning and add in front of other messages
+
+    iex(6)> add_warning([], "Just a warning message", {1, 3})
+    [%Lab42.Message{message: "Just a warning message", severity: :warning, location: {1, 3}}]
+### Lab42.Message.make_critical/2
+
+Create a message with severity :critical
+
+    iex(11)> make_critical("Just a critical message", {1, 3})
+    %Lab42.Message{message: "Just a critical message", severity: :critical, location: {1, 3}}
+### Lab42.Message.make_debug/2
+
+Create a message with severity :debug
+
+    iex(3)> make_debug("Just a debug message", {1, 3})
+    %Lab42.Message{message: "Just a debug message", severity: :debug, location: {1, 3}}
+### Lab42.Message.make_error/2
+
+Create a message with severity :error
+
+    iex(9)> make_error("Just a error message", {1, 3})
+    %Lab42.Message{message: "Just a error message", severity: :error, location: {1, 3}}
+### Lab42.Message.make_fatal/2
+
+Create a message with severity :fatal
+
+    iex(13)> make_fatal("Just a fatal message", {1, 3})
+    %Lab42.Message{message: "Just a fatal message", severity: :fatal, location: {1, 3}}
+### Lab42.Message.make_info/2
+
+Create a message with severity :info
+
+    iex(5)> make_info("Just a info message", {1, 3})
+    %Lab42.Message{message: "Just a info message", severity: :info, location: {1, 3}}
+### Lab42.Message.make_warning/2
+
+Create a message with severity :warning
+
+    iex(7)> make_warning("Just a warning message", {1, 3})
+    %Lab42.Message{message: "Just a warning message", severity: :warning, location: {1, 3}}
+
+
 
 
 ## Author

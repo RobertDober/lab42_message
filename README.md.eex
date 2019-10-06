@@ -11,10 +11,23 @@
 
 ## Synopsis
 
-Primitive Library to manage Errors and Results.
+Simple Library to manage Errors and Results.
 
 Its Simplicity is inspired by
  Dave Thomas' keynote, condensed here https://pragdave.me/blog/2018/06/02/project-structure.html
+
+## API
+
+<%= xtra.moduledoc("Lab42.Message") %>
+
+<%= 
+   fns = ~w{debug info warning error critical fatal}a
+   |> Enum.flat_map(&["add_#{&1}/3", "make_#{&1}/2"])
+   |> Enum.sort
+   # In Extratcly 0.1.5, use the following:
+   # xtra.functiondoc(:all, module: "Lab42.Message", headline: 3)
+   xtra.functiondoc(fns, module: "Lab42.Message", headline: 3) %>
+
 
 
 ## Author
