@@ -22,7 +22,7 @@ defmodule Lab42.Message do
 
 
   severities = ~w(debug info warning error critical fatal)a
-  @severities severities
+  @severity_values severities |> Enum.zip(Stream.iterate(0, &(&1+1))) |> Enum.into(%{})
 
   for {severity, index} <- severities |> Enum.zip(Stream.iterate(1, &(&1+1))) do
     # Make add_message
@@ -102,7 +102,7 @@ defmodule Lab42.Message do
       ...(17)> messages(messages, :all)
       [ {:error, "error1", 1}, {:info, "info2", 2}, {:debug, "debug3", 3} ]
   """
-  @spec messages(ts(), Keyword.t|:all) :: number()
+  @spec messages(ts(), Keyword.t|:all) :: message_ts()
   def messages(messages, options \\ [])
   def messages(messages, :all) do
     messages(messages, severity: :debug)
@@ -154,7 +154,8 @@ defmodule Lab42.Message do
   def severity_value(message_or_severity)
   def severity_value(%__MODULE__{severity: severity}), do: severity_value(severity)
   def severity_value(severity) do
-    Enum.find_index(@severities, &(&1 == severity)) || 999_999
+    # Enum.find_index(@severities, &(&1 == severity)) || 999_999
+    Map.get(@severity_values, severity, 999_999)
   end
 
 
