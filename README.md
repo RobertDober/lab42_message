@@ -105,6 +105,61 @@ Create a message with severity :warning
     %Lab42.Message{message: "Just a warning message", severity: :warning, location: {1, 3}}
 
 
+### Lab42.Message.messages/2
+
+Extract messages from a list of messages into a library agnositic form as triples.
+As all the `add_*` functions create a list in reverse order, this function also
+rereverses the message tuples.
+
+    iex(15)> messages =
+    ...(15)>   []
+    ...(15)>   |> add_error("error1", 1)
+    ...(15)>   |> add_info("info2", 2)
+    ...(15)>   |> add_warning("warning3", 3)
+    ...(15)> messages(messages)
+    [ {:error, "error1", 1}, {:warning, "warning3", 3} ]
+
+As you can see only messages with severity of warning and up are returned.
+
+One can of course get messages with less severity too:
+
+    iex(16)> messages =
+    ...(16)>   []
+    ...(16)>   |> add_error("error1", 1)
+    ...(16)>   |> add_info("info2", 2)
+    ...(16)>   |> add_debug("debug3", 3)
+    ...(16)> messages(messages, severity: :info)
+    [ {:error, "error1", 1}, {:info, "info2", 2} ]
+
+And, eventually, for your convenience, instead of `severity: :debug` a shorter and more expressive `:all` can be passed in
+
+    iex(17)> messages =
+    ...(17)>   []
+    ...(17)>   |> add_error("error1", 1)
+    ...(17)>   |> add_info("info2", 2)
+    ...(17)>   |> add_debug("debug3", 3)
+    ...(17)> messages(messages, :all)
+    [ {:error, "error1", 1}, {:info, "info2", 2}, {:debug, "debug3", 3} ]
+
+### Lab42.Message.result/2
+
+Wrap a value and error messages into a result tuple
+
+    iex(18)> result([], 42)
+    {:ok, 42, []}
+
+Messages of severity warning or less still deliver a `:ok` result
+
+    iex(19)> messages = []
+    ...(19)>   |> add_debug("hello", 1)
+    ...(19)>   |> add_info("hello again", 2)
+    ...(19)>   |> add_warning("world", 3)
+    ...(19)> {:ok, "result", ^messages} = result(messages, "result")
+    ...(19)> true
+    true
+
+
+
 
 
 ## Author
