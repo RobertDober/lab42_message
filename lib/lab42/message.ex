@@ -102,7 +102,7 @@ defmodule Lab42.Message do
       ...(17)> messages(messages, :all)
       [ {:error, "error1", 1}, {:info, "info2", 2}, {:debug, "debug3", 3} ]
   """
-  @spec messages(ts(), Keyword.t|:all) :: message_ts()
+  @spec messages(ts(), Keyword.t|:all) :: number()
   def messages(messages, options \\ [])
   def messages(messages, :all) do
     messages(messages, severity: :debug)

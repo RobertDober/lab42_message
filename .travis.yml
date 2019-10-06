@@ -17,5 +17,5 @@ env:
   - MIX_ENV=test
 
 script: 
-  - mix dialyxir 
+  - mix dialyzer
   - mix coveralls.travis
