@@ -3,7 +3,7 @@ defmodule Lab42Message.MixProject do
 
   @description "Simple Library to manage Errors and Results. Inspired in its simplicity by Dave Thomas' keynote, condensed here https://pragdave.me/blog/2018/06/02/project-structure.html"
   @url "https://github.com/robertdober/lab42_message"
-  @version "0.1.1"
+  @version "0.1.2"
   def project do
     [
       aliases: [docs: &build_docs/1],
