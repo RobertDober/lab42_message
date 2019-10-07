@@ -22,7 +22,6 @@ defmodule Lab42.Message do
   @type result_t :: {:ok|:error, any(), list(message_t)}
 
 
-
   severities = ~w(debug info warning error critical fatal)a
   @severity_values severities |> Enum.zip(Stream.iterate(0, &(&1+1))) |> Enum.into(%{})
 
@@ -165,26 +164,41 @@ defmodule Lab42.Message do
   end
 
   @doc """
-  Wrap a value and error messages into a result tuple
+  Wrap a value and error messages into a result tuple, messages themselves
+  are converted to message tuples as with `messages`. Also warnings still
+  deliver an `:ok` reesult.œ
 
-      iex(22)> result([], 42)
-      {:ok, 42, []}
+      iex(22)> messages = []
+      ...(22)>   |> add_debug("hello", 1)
+      ...(22)>   |> add_info("hello again", 2)
+      ...(22)>   |> add_warning("world", 3)
+      ...(22)> result(messages, "result")
+      {:ok, "result", [{:warning, "world", 3}]}
 
-  Messages of severity warning or less still deliver a `:ok` result
+  However the presence of errors or worse returns an `:error` result.
+  N.B. that the input can be a mixture of `Lab42.Message` structs and
+  agnostic tuples.
 
-      iex(23)> messages = []
+      iex(23)> messages = [{:fatal, "that was not good", 0}]
       ...(23)>   |> add_debug("hello", 1)
-      ...(23)>   |> add_info("hello again", 2)
-      ...(23)>   |> add_warning("world", 3)
-      ...(23)> {:ok, "result", ^messages} = result(messages, "result")
-      ...(23)> true
-      true
+      ...(23)> result(messages, "result")
+      {:error, "result", [{:fatal, "that was not good", 0}]}
+
+  As with `messages` one can control what level of errors shall be included, here
+  is an example where warnings are surpressed
+
+      iex(24)> messages = []
+      ...(24)>   |> add_error("hello", 1)
+      ...(24)>   |> add_info("hello again", 2)
+      ...(24)>   |> add_warning("world", 3)
+      ...(24)> result(messages, 42, severity: :error)
+      {:error, 42, [{:error, "hello", 1}]}
 
   """
-  @spec result( ts(), any() ) :: result_t()
-  def result(messages, value) do
+  @spec result( ts(), any(), Keyword.t ) :: result_t()
+  def result(messages, value, options \\ []) do
     status = _status(messages)
-    {status, value, messages}
+    {status, value, messages(messages, severity: Keyword.get(options, :severity, :warning))}
   end
 
   @doc """
@@ -199,15 +213,17 @@ defmodule Lab42.Message do
         iex(25)> severity_value(%Lab42.Message{severity: :error})
         3
   """
+  @spec severity_value( t() | severity_t() | message_t()) :: number()
   def severity_value(message_or_severity)
   def severity_value(%__MODULE__{severity: severity}), do: severity_value(severity)
+  def severity_value({severity, _, _}), do: severity_value(severity)
   def severity_value(severity) do
-    # Enum.find_index(@severities, &(&1 == severity)) || 999_999
     Map.get(@severity_values, severity, 999_999)
   end
 
 
-  @spec _format_message( t() ) :: result_t()
+  @spec _format_message( t() | message_t() ) :: message_t()
+  defp _format_message({_, _, _}=message), do: message
   defp _format_message(%{severity: severity, message: message, location: location}) do
     {severity, message, location}
   end
@@ -232,12 +248,9 @@ defmodule Lab42.Message do
   defp _max_severity([%{severity: severity}|rest], current_max, value?), do:
     _max_severity(rest, _max(severity, current_max), value?)
 
-  @spec _status( ts() ):: :ok|:error
+  @spec _status( message_list_t() ):: :ok|:error
   defp _status(messages) do
-    severity_max =
-      messages
-        |> Enum.max_by(&severity_value/1, fn -> :debug end)
-        |> severity_value()
+    severity_max = _max_severity(messages, :debug, true)
     if severity_max < severity_value(:error),
       do: :ok,
       else: :error
