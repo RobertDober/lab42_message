@@ -16,9 +16,11 @@ defmodule Lab42.Message do
   @type location_t :: any()
   @type t :: %__MODULE__{location: location_t(), message: String.t, severity: severity_t()}
   @type ts :: list(t)
+  @type message_list_t :: list(t()|message_t())
   @type message_t :: {severity_t(), String.t, location_t()}
   @type message_ts :: list(message_t())
   @type result_t :: {:ok|:error, any(), list(message_t)}
+
 
 
   severities = ~w(debug info warning error critical fatal)a
@@ -68,38 +70,84 @@ defmodule Lab42.Message do
   def extract!({:ok, value, _anything}), do: value
 
   @doc """
-  Extract messages from a list of messages into a library agnositic form as triples.
-  As all the `add_*` functions create a list in reverse order, this function also
-  rereverses the message tuples.
+  Returns the maximum priority of messages
+  A list of messages can be passed in 
 
       iex(15)> messages =
       ...(15)>   []
       ...(15)>   |> add_error("error1", 1)
       ...(15)>   |> add_info("info2", 2)
       ...(15)>   |> add_warning("warning3", 3)
-      ...(15)> messages(messages)
+      ...(15)> max_severity(messages)
+      :error
+
+  However a list of message tuples is also allowed
+
+      iex(16)> messages =
+      ...(16)>   []
+      ...(16)>   |> add_error("error1", 1)
+      ...(16)>   |> add_fatal("fatal2", 2)
+      ...(16)>   |> add_warning("warning3", 3)
+      ...(16)>   |> messages()
+      ...(16)> max_severity(messages)
+      :fatal
+
+  In accordance of the robustness principle the last can even be mixed
+
+      iex(17)> messages =
+      ...(17)>   []
+      ...(17)>   |> add_error("what an error", 42)
+      ...(17)>   |> add_info("what an info", 42)
+      ...(17)> max_severity([{:critical, "", nil}|messages])
+      :critical
+
+  And last, but not least it might be convenient to get the severity_value instead of
+  the symbolic severity
+
+      iex(18)> messages =
+      ...(18)>   []
+      ...(18)>   |> add_error("what an error", 42)
+      ...(18)>   |> add_info("what an info", 42)
+      ...(18)> max_severity([{:critical, "", nil}|messages], value: true)
+      4
+
+  """
+  @spec max_severity( message_list_t(), Keyword.t ) :: severity_t()
+  def max_severity(message_list, opts \\ []), do: _max_severity(message_list, :debug, Keyword.get(opts, :value))
+
+  @doc """
+  Extract messages from a list of messages into a library agnositic form as triples.
+  As all the `add_*` functions create a list in reverse order, this function also
+  rereverses the message tuples.
+
+      iex(19)> messages =
+      ...(19)>   []
+      ...(19)>   |> add_error("error1", 1)
+      ...(19)>   |> add_info("info2", 2)
+      ...(19)>   |> add_warning("warning3", 3)
+      ...(19)> messages(messages)
       [ {:error, "error1", 1}, {:warning, "warning3", 3} ]
 
   As you can see only messages with severity of warning and up are returned.
 
   One can of course get messages with less severity too:
 
-      iex(16)> messages =
-      ...(16)>   []
-      ...(16)>   |> add_error("error1", 1)
-      ...(16)>   |> add_info("info2", 2)
-      ...(16)>   |> add_debug("debug3", 3)
-      ...(16)> messages(messages, severity: :info)
+      iex(20)> messages =
+      ...(20)>   []
+      ...(20)>   |> add_error("error1", 1)
+      ...(20)>   |> add_info("info2", 2)
+      ...(20)>   |> add_debug("debug3", 3)
+      ...(20)> messages(messages, severity: :info)
       [ {:error, "error1", 1}, {:info, "info2", 2} ]
 
   And, eventually, for your convenience, instead of `severity: :debug` a shorter and more expressive `:all` can be passed in
 
-      iex(17)> messages =
-      ...(17)>   []
-      ...(17)>   |> add_error("error1", 1)
-      ...(17)>   |> add_info("info2", 2)
-      ...(17)>   |> add_debug("debug3", 3)
-      ...(17)> messages(messages, :all)
+      iex(21)> messages =
+      ...(21)>   []
+      ...(21)>   |> add_error("error1", 1)
+      ...(21)>   |> add_info("info2", 2)
+      ...(21)>   |> add_debug("debug3", 3)
+      ...(21)> messages(messages, :all)
       [ {:error, "error1", 1}, {:info, "info2", 2}, {:debug, "debug3", 3} ]
   """
   @spec messages(ts(), Keyword.t|:all) :: message_ts()
@@ -119,17 +167,17 @@ defmodule Lab42.Message do
   @doc """
   Wrap a value and error messages into a result tuple
 
-      iex(18)> result([], 42)
+      iex(22)> result([], 42)
       {:ok, 42, []}
 
   Messages of severity warning or less still deliver a `:ok` result
 
-      iex(19)> messages = []
-      ...(19)>   |> add_debug("hello", 1)
-      ...(19)>   |> add_info("hello again", 2)
-      ...(19)>   |> add_warning("world", 3)
-      ...(19)> {:ok, "result", ^messages} = result(messages, "result")
-      ...(19)> true
+      iex(23)> messages = []
+      ...(23)>   |> add_debug("hello", 1)
+      ...(23)>   |> add_info("hello again", 2)
+      ...(23)>   |> add_warning("world", 3)
+      ...(23)> {:ok, "result", ^messages} = result(messages, "result")
+      ...(23)> true
       true
 
   """
@@ -143,12 +191,12 @@ defmodule Lab42.Message do
     Assigns to each severity a numerical value, where a higher value indicates
     a higher severity.
 
-        iex(20)> severity_value(:debug)
+        iex(24)> severity_value(:debug)
         0
 
     The function extracts the severity from a message if necessary
 
-        iex(21)> severity_value(%Lab42.Message{severity: :error})
+        iex(25)> severity_value(%Lab42.Message{severity: :error})
         3
   """
   def severity_value(message_or_severity)
@@ -163,6 +211,26 @@ defmodule Lab42.Message do
   defp _format_message(%{severity: severity, message: message, location: location}) do
     {severity, message, location}
   end
+
+  @spec _max( severity_t(), severity_t() ) :: severity_t()
+  defp _max(lhs_severity, rhs_severity)
+  defp _max(lhs, rhs) do
+    if severity_value(lhs) > severity_value(rhs),
+      do: lhs,
+      else: rhs
+  end
+
+  @spec _max_severity( message_list_t(), severity_t(), any() ) :: severity_t() | number()
+  defp _max_severity(message_list, current_max, value?)
+  defp _max_severity([], current_max, value?) do
+    if value?,
+      do: severity_value(current_max),
+    else: current_max
+  end
+  defp _max_severity([{severity, _, _}|rest], current_max, value?), do:
+    _max_severity(rest, _max(severity, current_max), value?)
+  defp _max_severity([%{severity: severity}|rest], current_max, value?), do:
+    _max_severity(rest, _max(severity, current_max), value?)
 
   @spec _status( ts() ):: :ok|:error
   defp _status(messages) do
