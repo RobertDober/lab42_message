@@ -28,10 +28,11 @@ Its Simplicity is inspired by
    # xtra.functiondoc(:all, module: "Lab42.Message", headline: 3)
    xtra.functiondoc(fns, module: "Lab42.Message", headline: 3) %>
 
-<%= xtra.functiondoc("Lab42.Message.max_severity/1", headline: 3) %>
-<%= xtra.functiondoc("Lab42.Message.messages/2", headline: 3) %>
-<%= xtra.functiondoc("Lab42.Message.result/2", headline: 3) %>
 <%= xtra.functiondoc("Lab42.Message.extract/1", headline: 3) %>
+<%= xtra.functiondoc("Lab42.Message.max_severity/2", headline: 3) %>
+<%= xtra.functiondoc("Lab42.Message.messages/2", headline: 3) %>
+<%= xtra.functiondoc("Lab42.Message.result/3", headline: 3) %>
+<%= xtra.functiondoc("Lab42.Message.severity_value/2", headline: 3) %>
 
 
 ## Author

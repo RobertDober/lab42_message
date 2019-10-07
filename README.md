@@ -105,58 +105,118 @@ Create a message with severity :warning
     %Lab42.Message{message: "Just a warning message", severity: :warning, location: {1, 3}}
 
 
-### Lab42.Message.messages/2
 
-Extract messages from a list of messages into a library agnositic form as triples.
-As all the `add_*` functions create a list in reverse order, this function also
-rereverses the message tuples.
+### Lab42.Message.max_severity/2
+
+Returns the maximum priority of messages
+A list of messages can be passed in 
 
     iex(15)> messages =
     ...(15)>   []
     ...(15)>   |> add_error("error1", 1)
     ...(15)>   |> add_info("info2", 2)
     ...(15)>   |> add_warning("warning3", 3)
-    ...(15)> messages(messages)
+    ...(15)> max_severity(messages)
+    :error
+
+However a list of message tuples is also allowed
+
+    iex(16)> messages =
+    ...(16)>   []
+    ...(16)>   |> add_error("error1", 1)
+    ...(16)>   |> add_fatal("fatal2", 2)
+    ...(16)>   |> add_warning("warning3", 3)
+    ...(16)>   |> messages()
+    ...(16)> max_severity(messages)
+    :fatal
+
+In accordance of the robustness principle the last can even be mixed
+
+    iex(17)> messages =
+    ...(17)>   []
+    ...(17)>   |> add_error("what an error", 42)
+    ...(17)>   |> add_info("what an info", 42)
+    ...(17)> max_severity([{:critical, "", nil}|messages])
+    :critical
+
+And last, but not least it might be convenient to get the severity_value instead of
+the symbolic severity
+
+    iex(18)> messages =
+    ...(18)>   []
+    ...(18)>   |> add_error("what an error", 42)
+    ...(18)>   |> add_info("what an info", 42)
+    ...(18)> max_severity([{:critical, "", nil}|messages], value: true)
+    4
+
+
+### Lab42.Message.messages/2
+
+Extract messages from a list of messages into a library agnositic form as triples.
+As all the `add_*` functions create a list in reverse order, this function also
+rereverses the message tuples.
+
+    iex(19)> messages =
+    ...(19)>   []
+    ...(19)>   |> add_error("error1", 1)
+    ...(19)>   |> add_info("info2", 2)
+    ...(19)>   |> add_warning("warning3", 3)
+    ...(19)> messages(messages)
     [ {:error, "error1", 1}, {:warning, "warning3", 3} ]
 
 As you can see only messages with severity of warning and up are returned.
 
 One can of course get messages with less severity too:
 
-    iex(16)> messages =
-    ...(16)>   []
-    ...(16)>   |> add_error("error1", 1)
-    ...(16)>   |> add_info("info2", 2)
-    ...(16)>   |> add_debug("debug3", 3)
-    ...(16)> messages(messages, severity: :info)
+    iex(20)> messages =
+    ...(20)>   []
+    ...(20)>   |> add_error("error1", 1)
+    ...(20)>   |> add_info("info2", 2)
+    ...(20)>   |> add_debug("debug3", 3)
+    ...(20)> messages(messages, severity: :info)
     [ {:error, "error1", 1}, {:info, "info2", 2} ]
 
 And, eventually, for your convenience, instead of `severity: :debug` a shorter and more expressive `:all` can be passed in
 
-    iex(17)> messages =
-    ...(17)>   []
-    ...(17)>   |> add_error("error1", 1)
-    ...(17)>   |> add_info("info2", 2)
-    ...(17)>   |> add_debug("debug3", 3)
-    ...(17)> messages(messages, :all)
+    iex(21)> messages =
+    ...(21)>   []
+    ...(21)>   |> add_error("error1", 1)
+    ...(21)>   |> add_info("info2", 2)
+    ...(21)>   |> add_debug("debug3", 3)
+    ...(21)> messages(messages, :all)
     [ {:error, "error1", 1}, {:info, "info2", 2}, {:debug, "debug3", 3} ]
 
-### Lab42.Message.result/2
+### Lab42.Message.result/3
 
-Wrap a value and error messages into a result tuple
+Wrap a value and error messages into a result tuple, messages themselves
+are converted to message tuples as with `messages`. Also warnings still
+deliver an `:ok` reesult.œ
 
-    iex(18)> result([], 42)
-    {:ok, 42, []}
+    iex(22)> messages = []
+    ...(22)>   |> add_debug("hello", 1)
+    ...(22)>   |> add_info("hello again", 2)
+    ...(22)>   |> add_warning("world", 3)
+    ...(22)> result(messages, "result")
+    {:ok, "result", [{:warning, "world", 3}]}
 
-Messages of severity warning or less still deliver a `:ok` result
+However the presence of errors or worse returns an `:error` result.
+N.B. that the input can be a mixture of `Lab42.Message` structs and
+agnostic tuples.
 
-    iex(19)> messages = []
-    ...(19)>   |> add_debug("hello", 1)
-    ...(19)>   |> add_info("hello again", 2)
-    ...(19)>   |> add_warning("world", 3)
-    ...(19)> {:ok, "result", ^messages} = result(messages, "result")
-    ...(19)> true
-    true
+    iex(23)> messages = [{:fatal, "that was not good", 0}]
+    ...(23)>   |> add_debug("hello", 1)
+    ...(23)> result(messages, "result")
+    {:error, "result", [{:fatal, "that was not good", 0}]}
+
+As with `messages` one can control what level of errors shall be included, here
+is an example where warnings are surpressed
+
+    iex(24)> messages = []
+    ...(24)>   |> add_error("hello", 1)
+    ...(24)>   |> add_info("hello again", 2)
+    ...(24)>   |> add_warning("world", 3)
+    ...(24)> result(messages, 42, severity: :error)
+    {:error, 42, [{:error, "hello", 1}]}
 
 
 
